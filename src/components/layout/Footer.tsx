@@ -78,7 +78,7 @@ export function Footer() {
         </div>
 
         <div className="mt-8 pt-6 border-t border-emerald-950/10 flex flex-col sm:flex-row items-center justify-between text-xs text-emerald-900/60 gap-3">
-          <p>© {new Date().getFullYear()} FreshScan AI. Nature Glass Design Architecture.</p>
+          <p>© 2026 FreshScan AI. Nature Glass Design Architecture.</p>
           <p className="flex items-center gap-1">
             Dibuat dengan <Heart className="w-3 h-3 text-rose-500 fill-rose-500" /> untuk ketahanan & keamanan pangan Indonesia
           </p>
