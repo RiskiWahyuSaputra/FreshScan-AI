@@ -2,8 +2,8 @@ import { Suspense } from "react";
 import { ScanResultContent } from "@/components/results/ScanResultContent";
 
 export const metadata = {
-  title: "Hasil Analisis Kesegaran — QFscan",
-  description: "Laporan visual lengkap tingkat kesegaran, temuan cacat, dan rekomendasi penyimpanan.",
+  title: "Hasil Analisis — QFscan",
+  description: "Laporan visual lengkap tingkat kesegaran atau kesehatan tanaman, temuan visual, dan rekomendasi penanganan.",
 };
 
 export default function ResultPage() {

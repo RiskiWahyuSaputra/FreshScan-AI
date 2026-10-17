@@ -146,7 +146,7 @@ export function HistoryList() {
             <Search className="w-4 h-4 text-emerald-900/50 absolute left-3.5 top-3" />
             <input
               type="text"
-              placeholder="Cari nama bahan pangan..."
+              placeholder="Cari nama bahan pangan atau tanaman..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-9 pr-3 py-2 rounded-xl bg-white/80 border border-emerald-500/20 text-xs text-emerald-950 placeholder:text-emerald-900/40 focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
@@ -163,6 +163,7 @@ export function HistoryList() {
               <option value="all">Semua Kategori</option>
               <option value="fruit">Buah-buahan</option>
               <option value="vegetable">Sayuran</option>
+              <option value="plant">Tanaman</option>
               <option value="other">Bahan Lain</option>
               <option value="unknown">Tidak Diketahui</option>
             </select>
@@ -214,7 +215,7 @@ export function HistoryList() {
             </h3>
             <p className="text-xs text-emerald-900/60 max-w-sm mx-auto">
               {scans.length === 0
-                ? "Pindai bahan pangan pertama Anda untuk mulai mengumpulkan data kesegaran di dashboard."
+                ? "Pindai bahan pangan atau tanaman pertama Anda untuk mulai mengumpulkan data di dashboard."
                 : "Coba ubah kata kunci pencarian atau reset filter kategori dan status."}
             </p>
           </div>
@@ -231,7 +232,7 @@ export function HistoryList() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {filteredScans.map((scan) => {
-            const badge = getFreshnessBadge(scan.freshness_status);
+            const badge = getFreshnessBadge(scan.freshness_status, scan.category);
             return (
               <div
                 key={scan.id}

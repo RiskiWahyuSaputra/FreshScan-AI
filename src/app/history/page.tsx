@@ -1,8 +1,8 @@
 import { HistoryList } from "@/components/history/HistoryList";
 
 export const metadata = {
-  title: "Riwayat Pemindaian Pangan — QFscan",
-  description: "Kelola, cari, dan telusuri riwayat hasil analisis kesegaran buah dan sayuran yang tersimpan.",
+  title: "Riwayat Pemindaian — QFscan",
+  description: "Kelola, cari, dan telusuri riwayat hasil analisis buah, sayuran, dan tanaman yang tersimpan.",
 };
 
 export default function HistoryPage() {

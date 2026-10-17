@@ -18,12 +18,15 @@ import {
   Layers,
   ChevronRight,
   Info,
+  Sprout,
+  Siren,
 } from "lucide-react";
 import { getScanResultById, saveScanResult } from "@/lib/storage";
 import {
   getFreshnessBadge,
   getRecommendedActionBadge,
   getCategoryLabel,
+  getSurvivalBadge,
   formatDateTime,
 } from "@/lib/validation";
 import type { FreshnessAnalysisResult } from "@/types/analysis";
@@ -71,7 +74,7 @@ export function ScanResultContent() {
     return (
       <div className="max-w-4xl mx-auto py-16 text-center space-y-4">
         <div className="w-12 h-12 rounded-full border-4 border-emerald-500/20 border-t-emerald-600 animate-spin mx-auto" />
-        <p className="text-sm font-semibold text-emerald-950">Memuat hasil analisis pangan...</p>
+        <p className="text-sm font-semibold text-emerald-950">Memuat hasil analisis...</p>
       </div>
     );
   }
@@ -104,8 +107,10 @@ export function ScanResultContent() {
     );
   }
 
-  const badge = getFreshnessBadge(result.freshness_status);
-  const actionBadge = getRecommendedActionBadge(result.recommended_action);
+  const isPlant = result.scan_mode === "plant";
+  const badge = getFreshnessBadge(result.freshness_status, result.category);
+  const actionBadge = getRecommendedActionBadge(result.recommended_action, result.category);
+  const survivalBadge = getSurvivalBadge(result.survival_outlook ?? "uncertain");
 
   // SVG Circular progress computation
   const radius = 54;
@@ -225,10 +230,12 @@ export function ScanResultContent() {
 
               <div className="space-y-1">
                 <span className="text-xs font-bold text-emerald-900 uppercase tracking-wider">
-                  Estimasi Kesegaran Visual
+                  {isPlant ? "Estimasi Kesehatan Tanaman" : "Estimasi Kesegaran Visual"}
                 </span>
                 <p className="text-xs text-emerald-900/70 leading-relaxed">
-                  Berdasarkan penilaian visual permukaan, warna, kecerahan, dan keutuhan bentuk pada gambar.
+                  {isPlant
+                    ? "Berdasarkan penilaian visual warna daun, kesegaran (turgor), bercak, batang, dan pertumbuhan baru pada gambar."
+                    : "Berdasarkan penilaian visual permukaan, warna, kecerahan, dan keutuhan bentuk pada gambar."}
                 </p>
               </div>
             </div>
@@ -243,6 +250,43 @@ export function ScanResultContent() {
             </div>
           </div>
         </div>
+
+        {/* Plant Survival Outlook & Urgent Actions */}
+        {isPlant && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className={`p-5 rounded-2xl border space-y-2 ${survivalBadge.color}`}>
+              <div className="flex items-center gap-2 text-sm font-bold">
+                <Sprout className="w-4 h-4" />
+                <span>Peluang Hidup: {survivalBadge.label}</span>
+              </div>
+              <p className="text-xs leading-relaxed opacity-90">{result.survival_explanation}</p>
+            </div>
+
+            <div className="p-5 rounded-2xl bg-rose-500/5 border border-rose-500/15 space-y-3">
+              <div className="flex items-center gap-2 text-sm font-bold text-rose-950">
+                <Siren className="w-4 h-4 text-rose-600" />
+                <span>Langkah Penanganan Segera</span>
+              </div>
+              {result.urgent_actions && result.urgent_actions.length > 0 ? (
+                <ol className="space-y-2 text-xs text-rose-950/80">
+                  {result.urgent_actions.map((step, idx) => (
+                    <li key={idx} className="flex items-start gap-2">
+                      <span className="w-4 h-4 rounded-full bg-rose-500/15 text-rose-700 text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">
+                        {idx + 1}
+                      </span>
+                      <span className="leading-relaxed">{step}</span>
+                    </li>
+                  ))}
+                </ol>
+              ) : (
+                <p className="text-xs text-emerald-800 flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span>Tidak ada tindakan darurat yang diperlukan saat ini.</span>
+                </p>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Ringkasan Eksekutif */}
         <div className="p-5 rounded-2xl bg-emerald-500/5 border border-emerald-500/15 space-y-2">
@@ -317,7 +361,11 @@ export function ScanResultContent() {
               ) : (
                 <div className="p-4 rounded-xl bg-emerald-500/5 border border-emerald-500/10 text-xs text-emerald-800 flex items-center gap-2">
                   <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0" />
-                  <span>Tidak terdeteksi gejala penyakit tanaman atau kerusakan signifikan.</span>
+                  <span>
+                    {isPlant
+                      ? "Tidak terdeteksi gejala penyakit, hama, atau stres yang signifikan."
+                      : "Tidak terdeteksi gejala penyakit tanaman atau kerusakan signifikan."}
+                  </span>
                 </div>
               )}
             </div>
@@ -330,7 +378,7 @@ export function ScanResultContent() {
           <div className="p-5 rounded-2xl bg-emerald-600/5 border border-emerald-600/15 space-y-3">
             <div className="flex items-center gap-2 text-sm font-bold text-emerald-950">
               <Thermometer className="w-4 h-4 text-emerald-600" />
-              <span>Tips Penanganan & Penyimpanan</span>
+              <span>{isPlant ? "Tips Perawatan Rutin" : "Tips Penanganan & Penyimpanan"}</span>
             </div>
             <ul className="space-y-2 text-xs text-emerald-900/80">
               {result.storage_tips?.map((tip, idx) => (
@@ -374,14 +422,14 @@ export function ScanResultContent() {
               className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-white border border-emerald-500/20 text-xs font-semibold text-emerald-950 hover:border-emerald-500/40 transition-colors"
             >
               <Info className="w-4 h-4 text-emerald-600" />
-              <span>Pelajari Gejala Pangan</span>
+              <span>{isPlant ? "Pelajari Gejala" : "Pelajari Gejala Pangan"}</span>
             </Link>
             <Link
               href="/scanner"
               className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-md shadow-emerald-700/20 transition-all"
             >
               <Scan className="w-4 h-4" />
-              <span>Pindai Bahan Lain</span>
+              <span>{isPlant ? "Pindai Tanaman Lain" : "Pindai Bahan Lain"}</span>
             </Link>
           </div>
         </div>

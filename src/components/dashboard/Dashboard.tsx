@@ -40,7 +40,7 @@ export function Dashboard() {
     poorCount: 0,
     uncertainCount: 0,
     avgScore: 0,
-    categoryCounts: { fruit: 0, vegetable: 0, other: 0, unknown: 0 },
+    categoryCounts: { fruit: 0, vegetable: 0, plant: 0, other: 0, unknown: 0 },
   });
   const [recentScans, setRecentScans] = useState<FreshnessAnalysisResult[]>([]);
   const [loading, setLoading] = useState(true);
@@ -63,9 +63,9 @@ export function Dashboard() {
 
   // Bar chart data for status counts
   const statusChartData = [
-    { name: "Tampak Segar", count: stats.freshCount, color: "#10b981" },
-    { name: "Perlu Cek", count: stats.moderateCount, color: "#f59e0b" },
-    { name: "Kerusakan", count: stats.poorCount, color: "#f43f5e" },
+    { name: "Segar / Sehat", count: stats.freshCount, color: "#10b981" },
+    { name: "Perlu Cek / Stres", count: stats.moderateCount, color: "#f59e0b" },
+    { name: "Rusak / Kritis", count: stats.poorCount, color: "#f43f5e" },
     { name: "Tidak Yakin", count: stats.uncertainCount, color: "#64748b" },
   ];
 
@@ -73,6 +73,7 @@ export function Dashboard() {
   const categoryData = [
     { name: "Buah", count: stats.categoryCounts.fruit, color: "#059669" },
     { name: "Sayur", count: stats.categoryCounts.vegetable, color: "#10b981" },
+    { name: "Tanaman", count: stats.categoryCounts.plant, color: "#0d9488" },
     { name: "Lainnya", count: stats.categoryCounts.other, color: "#84cc16" },
   ].filter((c) => c.count > 0);
 
@@ -86,10 +87,10 @@ export function Dashboard() {
             <span>Dashboard Analitik & Pemantauan Mutu</span>
           </div>
           <h1 className="text-3xl font-black text-emerald-950 tracking-tight">
-            Ringkasan Mutu Pangan Anda
+            Ringkasan Hasil Pemindaian Anda
           </h1>
           <p className="text-xs sm:text-sm text-emerald-900/70">
-            Statistik dan wawasan dari pemindaian bahan pangan yang tersimpan di perangkat ini.
+            Statistik dan wawasan dari pemindaian bahan pangan dan tanaman yang tersimpan di perangkat ini.
           </p>
         </div>
 
@@ -121,7 +122,7 @@ export function Dashboard() {
         {/* Kondisi Baik / Segar */}
         <div className="nature-glass-card rounded-2xl p-5 border-emerald-500/20 space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-emerald-900/60 uppercase">Tampak Segar</span>
+            <span className="text-xs font-semibold text-emerald-900/60 uppercase">Segar / Sehat</span>
             <div className="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-700 flex items-center justify-center">
               <CheckCircle2 className="w-4 h-4" />
             </div>
@@ -137,7 +138,7 @@ export function Dashboard() {
         {/* Perlu Diperiksa */}
         <div className="nature-glass-card rounded-2xl p-5 border-amber-500/20 space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-amber-900/60 uppercase">Perlu Diperiksa</span>
+            <span className="text-xs font-semibold text-amber-900/60 uppercase">Perlu Cek / Stres</span>
             <div className="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-700 flex items-center justify-center">
               <AlertTriangle className="w-4 h-4" />
             </div>
@@ -153,7 +154,7 @@ export function Dashboard() {
         {/* Indikasi Kerusakan */}
         <div className="nature-glass-card rounded-2xl p-5 border-rose-500/20 space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-rose-900/60 uppercase">Indikasi Rusak</span>
+            <span className="text-xs font-semibold text-rose-900/60 uppercase">Rusak / Kritis</span>
             <div className="w-8 h-8 rounded-lg bg-rose-500/10 text-rose-700 flex items-center justify-center">
               <XCircle className="w-4 h-4" />
             </div>
@@ -173,8 +174,8 @@ export function Dashboard() {
         <div className="lg:col-span-8 nature-glass rounded-3xl p-6 border border-emerald-500/20 space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="font-bold text-base text-emerald-950">Distribusi Kondisi Pangan</h3>
-              <p className="text-xs text-emerald-900/60">Perbandingan jumlah bahan berdasarkan status visual</p>
+              <h3 className="font-bold text-base text-emerald-950">Distribusi Kondisi Hasil Scan</h3>
+              <p className="text-xs text-emerald-900/60">Perbandingan jumlah hasil scan berdasarkan status visual</p>
             </div>
             {stats.totalScans > 0 && (
               <span className="text-xs font-bold px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-800">
@@ -229,6 +230,10 @@ export function Dashboard() {
               <div className="p-3 rounded-xl bg-white/70 border border-emerald-500/15 flex items-center justify-between text-xs">
                 <span className="font-semibold text-emerald-950">Sayuran</span>
                 <span className="font-bold text-emerald-700">{stats.categoryCounts.vegetable} sampel</span>
+              </div>
+              <div className="p-3 rounded-xl bg-white/70 border border-emerald-500/15 flex items-center justify-between text-xs">
+                <span className="font-semibold text-emerald-950">Tanaman</span>
+                <span className="font-bold text-emerald-700">{stats.categoryCounts.plant} sampel</span>
               </div>
               <div className="p-3 rounded-xl bg-white/70 border border-emerald-500/15 flex items-center justify-between text-xs">
                 <span className="font-semibold text-emerald-950">Bahan Lain</span>
@@ -286,7 +291,7 @@ export function Dashboard() {
         ) : (
           <div className="divide-y divide-emerald-950/10">
             {recentScans.map((scan) => {
-              const badge = getFreshnessBadge(scan.freshness_status);
+              const badge = getFreshnessBadge(scan.freshness_status, scan.category);
               return (
                 <Link
                   key={scan.id}

@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Leaf, Scan, LayoutDashboard, History, BookOpen, Sparkles } from "lucide-react";
@@ -21,15 +22,20 @@ export function Navbar() {
       <div className="max-w-7xl mx-auto nature-glass rounded-2xl px-4 sm:px-6 py-2.5 flex items-center justify-between">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2.5 group">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-600 to-lime-500 flex items-center justify-center text-white shadow-md shadow-emerald-600/20 group-hover:scale-105 transition-transform duration-200">
-            <Leaf className="w-5 h-5" />
-          </div>
+          <Image
+            src="/images/logo-mark.png"
+            alt="Logo QFscan"
+            width={40}
+            height={40}
+            priority
+            className="w-10 h-10 drop-shadow-md group-hover:scale-105 transition-transform duration-200"
+          />
           <div>
             <div className="flex items-center gap-1.5">
               <span className="font-extrabold text-lg text-emerald-950 tracking-tight">QFscan</span>
             </div>
             <p className="text-[10px] text-emerald-800/70 font-medium hidden sm:block">
-              Inspeksi Mutu & Kesegaran Visual
+              Inspeksi Pangan & Kesehatan Tanaman
             </p>
           </div>
         </Link>

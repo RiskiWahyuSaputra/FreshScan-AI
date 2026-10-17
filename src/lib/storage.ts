@@ -157,6 +157,7 @@ export async function calculateDashboardStats(): Promise<DashboardStats> {
     categoryCounts: {
       fruit: 0,
       vegetable: 0,
+      plant: 0,
       other: 0,
       unknown: 0,
     },

@@ -9,6 +9,7 @@ import {
   Apple,
   Carrot,
   Leaf,
+  Sprout,
   Layers,
   ThermometerSun,
   Camera,
@@ -24,6 +25,9 @@ export default function HomePage() {
     { name: "Sayuran Daun", category: "Sayur", desc: "Menganalisis layu, daun menguning, lendir, atau bercak serangga.", icon: Leaf },
     { name: "Cabai & Paprika", category: "Sayur", desc: "Mendeteksi antraknosa (bercak hitam cekung) dan kulit layu.", icon: Carrot },
     { name: "Tomat", category: "Sayur", desc: "Mengevaluasi kekenyalan visual, retak kulit, dan pembusukan pangkal.", icon: Carrot },
+    { name: "Tanaman Hias", category: "Tanaman", desc: "Menilai daun menguning, ujung kering, layu, dan tanda busuk akar.", icon: Sprout },
+    { name: "Tanaman Kebun & Sayur", category: "Tanaman", desc: "Mendeteksi bercak daun, jamur, serta serangan hama seperti kutu dan ulat.", icon: Sprout },
+    { name: "Bibit & Tanaman Muda", category: "Tanaman", desc: "Memperkirakan peluang hidup bibit yang layu, rebah, atau stres pindah tanam.", icon: Sprout },
   ];
 
   const steps = [
@@ -36,13 +40,13 @@ export default function HomePage() {
     {
       num: "02",
       title: "Analisis Visual Groq AI",
-      desc: "Model vision canggih mengevaluasi warna, tekstur kulit, bintik, dan tanda degradasi visual.",
+      desc: "Model vision canggih mengevaluasi warna, tekstur kulit, kondisi daun, bintik, dan tanda degradasi visual.",
       icon: Sparkles,
     },
     {
       num: "03",
       title: "Rekomendasi & Penyimpanan",
-      desc: "Dapatkan estimasi skor kesegaran (0-100), panduan penanganan, dan tips penyimpanan ideal.",
+      desc: "Dapatkan skor kesegaran atau kesehatan tanaman (0-100), peluang hidup tanaman, dan tips penanganan ideal.",
       icon: ThermometerSun,
     },
   ];
@@ -57,11 +61,11 @@ export default function HomePage() {
         <div className="relative z-10 max-w-3xl space-y-6">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-800 text-xs sm:text-sm font-semibold">
             <Sparkles className="w-4 h-4 text-emerald-600" />
-            <span>Teknologi Vision AI Inspeksi Pangan Terkini</span>
+            <span>Teknologi Vision AI Inspeksi Pangan & Tanaman</span>
           </div>
 
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-emerald-950 tracking-tight leading-[1.15]">
-            Kenali Kesegaran Pangan dalam{" "}
+            Kenali Kesegaran Pangan & Kesehatan Tanaman dalam{" "}
             <span className="bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
               Sekejap.
             </span>
@@ -70,7 +74,8 @@ export default function HomePage() {
           <p className="text-base sm:text-lg text-emerald-900/80 leading-relaxed max-w-2xl">
             Pindai buah, sayuran, dan hasil tani Anda menggunakan kamera. QFscan mengevaluasi bukti visual
             seperti memar, diskolorasi, jamur permukaan, dan memberikan tips penyimpanan praktis agar bahan pangan
-            tidak terbuang sia-sia.
+            tidak terbuang sia-sia. Tanaman Anda layu atau daunnya menguning? QFscan juga bisa memeriksa kesehatan
+            tanaman dan memperkirakan apakah tanaman masih bisa diselamatkan.
           </p>
 
           <div className="flex flex-wrap items-center gap-4 pt-2">
@@ -96,11 +101,11 @@ export default function HomePage() {
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 pt-8 border-t border-emerald-950/10">
             <div>
               <div className="text-2xl font-black text-emerald-900">0 - 100</div>
-              <div className="text-xs text-emerald-800/70 font-medium">Skor Kesegaran Visual</div>
+              <div className="text-xs text-emerald-800/70 font-medium">Skor Kesegaran & Kesehatan</div>
             </div>
             <div>
               <div className="text-2xl font-black text-emerald-900">Multi-Kategori</div>
-              <div className="text-xs text-emerald-800/70 font-medium">Buah, Sayur, Hasil Tani</div>
+              <div className="text-xs text-emerald-800/70 font-medium">Buah, Sayur, Tanaman</div>
             </div>
             <div className="col-span-2 sm:col-span-1">
               <div className="text-2xl font-black text-emerald-900">Privat & Cepat</div>
@@ -115,7 +120,7 @@ export default function HomePage() {
         <div className="text-center max-w-xl mx-auto space-y-2">
           <h2 className="text-xs font-bold text-emerald-600 tracking-widest uppercase">Alur Penggunaan</h2>
           <p className="text-3xl font-extrabold text-emerald-950">Bagaimana Cara Kerjanya?</p>
-          <p className="text-sm text-emerald-900/70">Tiga langkah mudah untuk mengetahui kondisi bahan pangan Anda.</p>
+          <p className="text-sm text-emerald-900/70">Tiga langkah mudah untuk mengetahui kondisi bahan pangan atau tanaman Anda.</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -225,13 +230,13 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Jenis Bahan Pangan yang Didukung */}
+      {/* Jenis Bahan Pangan & Tanaman yang Didukung */}
       <section className="space-y-8">
         <div className="text-center max-w-xl mx-auto space-y-2">
           <h2 className="text-xs font-bold text-emerald-600 tracking-widest uppercase">Cakupan Deteksi</h2>
-          <p className="text-3xl font-extrabold text-emerald-950">Bahan Pangan yang Didukung</p>
+          <p className="text-3xl font-extrabold text-emerald-950">Pangan & Tanaman yang Didukung</p>
           <p className="text-sm text-emerald-900/70">
-            QFscan dilatih menganalisis berbagai varietas pangan segar secara visual.
+            QFscan menganalisis berbagai varietas pangan segar dan tanaman hidup secara visual.
           </p>
         </div>
 
@@ -269,12 +274,14 @@ export default function HomePage() {
           Aplikasi ini tidak dapat mendeteksi keberadaan bakteri mikroba (mis. Salmonella, E. Coli), residu bahan kimia/pestisida,
           racun pangan, ataupun kebusukan bagian dalam yang tertutup kulit tebal. Skor tinggi adalah estimasi visual dan bukan
           jaminan keamanan konsumsi mutlak. Selalu gunakan akal sehat, periksa aroma, dan cuci bahan pangan secara bersih.
+          Untuk tanaman, kondisi akar dan kelembapan tanah umumnya tidak terlihat di foto, sehingga perkiraan peluang hidup
+          bersifat indikatif dan sebaiknya dikonfirmasi dengan pengecekan langsung.
         </p>
       </section>
 
       {/* Call to Action Bottom */}
       <section className="text-center space-y-6 py-6">
-        <h2 className="text-3xl sm:text-4xl font-extrabold text-emerald-950">Siap Memeriksa Bahan Pangan Anda?</h2>
+        <h2 className="text-3xl sm:text-4xl font-extrabold text-emerald-950">Siap Memeriksa Pangan atau Tanaman Anda?</h2>
         <p className="text-sm text-emerald-900/70 max-w-md mx-auto">
           Mulai ambil foto pertama Anda sekarang atau kelola hasil scan sebelumnya di dashboard.
         </p>

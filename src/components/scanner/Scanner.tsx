@@ -12,12 +12,49 @@ import {
   SwitchCamera,
   Info,
   CheckCircle,
+  Apple,
+  Sprout,
 } from "lucide-react";
 import { saveScanResult } from "@/lib/storage";
-import type { FreshnessAnalysisResult, AnalyzeApiResponse } from "@/types/analysis";
+import type { FreshnessAnalysisResult, AnalyzeApiResponse, ScanMode } from "@/types/analysis";
+
+// Keep request bodies well under Vercel's 4.5MB function payload limit
+const MAX_IMAGE_DIMENSION = 1600;
+const JPEG_QUALITY = 0.8;
+
+function getScaledSize(width: number, height: number) {
+  const scale = Math.min(1, MAX_IMAGE_DIMENSION / Math.max(width, height));
+  return { width: Math.round(width * scale), height: Math.round(height * scale) };
+}
+
+function compressImage(dataUrl: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const { width, height } = getScaledSize(img.naturalWidth, img.naturalHeight);
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) {
+        reject(new Error("Browser tidak mendukung kompresi gambar."));
+        return;
+      }
+      // White background so transparent PNGs don't turn black as JPEG
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, width, height);
+      ctx.drawImage(img, 0, 0, width, height);
+      resolve(canvas.toDataURL("image/jpeg", JPEG_QUALITY));
+    };
+    img.onerror = () => reject(new Error("Gagal memproses file gambar."));
+    img.src = dataUrl;
+  });
+}
 
 export function Scanner() {
   const router = useRouter();
+  const [scanMode, setScanMode] = useState<ScanMode>("produce");
+  const isPlant = scanMode === "plant";
   const [activeTab, setActiveTab] = useState<"camera" | "upload">("upload");
 
   // Camera state
@@ -104,14 +141,15 @@ export function Scanner() {
   const capturePhoto = () => {
     if (!videoRef.current) return;
     const video = videoRef.current;
+    const { width, height } = getScaledSize(video.videoWidth || 1280, video.videoHeight || 720);
     const canvas = document.createElement("canvas");
-    canvas.width = video.videoWidth || 1280;
-    canvas.height = video.videoHeight || 720;
+    canvas.width = width;
+    canvas.height = height;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-    const dataUrl = canvas.toDataURL("image/jpeg", 0.9);
+    const dataUrl = canvas.toDataURL("image/jpeg", JPEG_QUALITY);
     setSelectedImage(dataUrl);
     stopCamera();
   };
@@ -138,8 +176,13 @@ export function Scanner() {
 
     setSelectedFile(file);
     const reader = new FileReader();
-    reader.onload = () => {
-      setSelectedImage(reader.result as string);
+    reader.onload = async () => {
+      try {
+        setSelectedImage(await compressImage(reader.result as string));
+      } catch (err: unknown) {
+        setSelectedFile(null);
+        setErrorMessage((err as Error).message);
+      }
     };
     reader.onerror = () => {
       setErrorMessage("Gagal membaca file gambar.");
@@ -177,7 +220,11 @@ export function Scanner() {
 
     try {
       const stepInterval = setTimeout(() => {
-        setAnalysisStepText("Menganalisis tekstur visual & indikator kesegaran dengan Groq Vision...");
+        setAnalysisStepText(
+          isPlant
+            ? "Menganalisis kesehatan daun, batang & peluang hidup tanaman dengan Groq Vision..."
+            : "Menganalisis tekstur visual & indikator kesegaran dengan Groq Vision...",
+        );
       }, 1200);
 
       const res = await fetch("/api/analyze", {
@@ -185,7 +232,8 @@ export function Scanner() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           image: selectedImage,
-          category_hint: categoryHint || undefined,
+          scan_mode: scanMode,
+          category_hint: isPlant ? undefined : categoryHint || undefined,
           item_name_hint: itemNameHint || undefined,
           notes: notes || undefined,
         }),
@@ -225,11 +273,47 @@ export function Scanner() {
           <span>Scanner Cerdas Multi-Metode</span>
         </div>
         <h1 className="text-3xl sm:text-4xl font-extrabold text-emerald-950 tracking-tight">
-          Pindai Bahan Pangan Anda
+          {isPlant ? "Cek Kesehatan Tanaman Anda" : "Pindai Bahan Pangan Anda"}
         </h1>
         <p className="text-sm text-emerald-900/70 max-w-lg mx-auto">
-          Gunakan kamera langsung untuk potret instan, atau upload foto beresolusi tinggi dari galeri penyimpanan Anda.
+          {isPlant
+            ? "Foto tanaman Anda untuk mengetahui kondisi kesehatannya, dugaan penyakit atau hama, dan apakah tanaman masih bisa bertahan hidup."
+            : "Gunakan kamera langsung untuk potret instan, atau upload foto beresolusi tinggi dari galeri penyimpanan Anda."}
         </p>
+      </div>
+
+      {/* Scan Mode Switcher */}
+      <div className="grid grid-cols-2 gap-3 max-w-md mx-auto">
+        {(
+          [
+            { mode: "produce", label: "Bahan Pangan", desc: "Buah & sayur", icon: Apple },
+            { mode: "plant", label: "Tanaman", desc: "Kesehatan & peluang hidup", icon: Sprout },
+          ] as const
+        ).map(({ mode, label, desc, icon: Icon }) => (
+          <button
+            key={mode}
+            type="button"
+            disabled={isAnalyzing}
+            onClick={() => setScanMode(mode)}
+            className={`p-3 rounded-2xl border text-left flex items-center gap-3 transition-all ${
+              scanMode === mode
+                ? "bg-white border-emerald-500/50 shadow-md shadow-emerald-900/5 ring-2 ring-emerald-500/20"
+                : "bg-emerald-900/5 border-emerald-950/10 hover:border-emerald-500/30"
+            }`}
+          >
+            <div
+              className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
+                scanMode === mode ? "bg-emerald-600 text-white" : "bg-emerald-600/10 text-emerald-700"
+              }`}
+            >
+              <Icon className="w-5 h-5" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-sm font-bold text-emerald-950">{label}</p>
+              <p className="text-[11px] text-emerald-900/60 truncate">{desc}</p>
+            </div>
+          </button>
+        ))}
       </div>
 
       {/* Main Glass Workspace */}
@@ -271,7 +355,7 @@ export function Scanner() {
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={selectedImage}
-                alt="Preview bahan pangan"
+                alt={isPlant ? "Preview tanaman" : "Preview bahan pangan"}
                 className="max-h-[460px] w-full object-contain"
               />
               <button
@@ -286,7 +370,11 @@ export function Scanner() {
             </div>
 
             <div className="flex items-center justify-between text-xs text-emerald-900/70 px-1">
-              <span>{selectedFile ? `${selectedFile.name} (${Math.round(selectedFile.size / 1024)} KB)` : "Hasil foto kamera"}</span>
+              <span>
+                {selectedFile
+                  ? `${selectedFile.name} (${Math.round(selectedFile.size / 1024)} KB)`
+                  : "Hasil foto kamera"}
+              </span>
               <button
                 type="button"
                 onClick={resetSelection}
@@ -300,12 +388,7 @@ export function Scanner() {
         ) : activeTab === "camera" ? (
           <div className="space-y-4">
             <div className="relative rounded-2xl overflow-hidden border border-emerald-500/30 bg-black min-h-[360px] flex items-center justify-center">
-              <video
-                ref={videoRef}
-                playsInline
-                muted
-                className="w-full h-[360px] sm:h-[420px] object-cover"
-              />
+              <video ref={videoRef} playsInline muted className="w-full h-[360px] sm:h-[420px] object-cover" />
 
               {cameraError && (
                 <div className="absolute inset-0 bg-black/80 flex flex-col items-center justify-center p-6 text-center text-white space-y-3">
@@ -345,7 +428,9 @@ export function Scanner() {
               )}
             </div>
             <p className="text-xs text-center text-emerald-900/60">
-              Arahkan kamera ke bahan pangan dengan pencahayaan yang merata agar detail tekstur terlihat jelas.
+              {isPlant
+                ? "Arahkan kamera ke tanaman secara utuh (daun, batang, dan pangkal) dengan pencahayaan alami yang cukup."
+                : "Arahkan kamera ke bahan pangan dengan pencahayaan yang merata agar detail tekstur terlihat jelas."}
             </p>
           </div>
         ) : (
@@ -367,12 +452,8 @@ export function Scanner() {
               <Upload className="w-8 h-8" />
             </div>
             <div className="space-y-1">
-              <p className="text-base font-bold text-emerald-950">
-                Pilih atau Tarik File Gambar ke Sini
-              </p>
-              <p className="text-xs text-emerald-900/70">
-                Mendukung format JPG, PNG, atau WebP (maksimal 10MB)
-              </p>
+              <p className="text-base font-bold text-emerald-950">Pilih atau Tarik File Gambar ke Sini</p>
+              <p className="text-xs text-emerald-900/70">Mendukung format JPG, PNG, atau WebP (maksimal 10MB)</p>
             </div>
             <button
               type="button"
@@ -392,29 +473,29 @@ export function Scanner() {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-              <div>
-                <label className="block text-emerald-900/70 font-semibold mb-1">
-                  Kategori Bahan Pangan
-                </label>
-                <select
-                  value={categoryHint}
-                  onChange={(e) => setCategoryHint(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl bg-white border border-emerald-500/20 text-emerald-950 focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
-                >
-                  <option value="">Deteksi Otomatis oleh AI</option>
-                  <option value="fruit">Buah-buahan</option>
-                  <option value="vegetable">Sayuran</option>
-                  <option value="other">Bahan Pangan Lain</option>
-                </select>
-              </div>
+              {!isPlant && (
+                <div>
+                  <label className="block text-emerald-900/70 font-semibold mb-1">Kategori Bahan Pangan</label>
+                  <select
+                    value={categoryHint}
+                    onChange={(e) => setCategoryHint(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl bg-white border border-emerald-500/20 text-emerald-950 focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
+                  >
+                    <option value="">Deteksi Otomatis oleh AI</option>
+                    <option value="fruit">Buah-buahan</option>
+                    <option value="vegetable">Sayuran</option>
+                    <option value="other">Bahan Pangan Lain</option>
+                  </select>
+                </div>
+              )}
 
-              <div>
+              <div className={isPlant ? "sm:col-span-2" : undefined}>
                 <label className="block text-emerald-900/70 font-semibold mb-1">
-                  Nama Bahan (Jika diketahui)
+                  {isPlant ? "Nama Tanaman (Jika diketahui)" : "Nama Bahan (Jika diketahui)"}
                 </label>
                 <input
                   type="text"
-                  placeholder="Contoh: Apel Fuji, Pisang, Tomat"
+                  placeholder={isPlant ? "Contoh: Monstera, Cabai, Lidah Mertua" : "Contoh: Apel Fuji, Pisang, Tomat"}
                   value={itemNameHint}
                   onChange={(e) => setItemNameHint(e.target.value)}
                   className="w-full px-3 py-2 rounded-xl bg-white border border-emerald-500/20 text-emerald-950 placeholder:text-emerald-900/40 focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
@@ -422,12 +503,14 @@ export function Scanner() {
               </div>
 
               <div className="sm:col-span-2">
-                <label className="block text-emerald-900/70 font-semibold mb-1">
-                  Catatan Kondisi / Pertanyaan
-                </label>
+                <label className="block text-emerald-900/70 font-semibold mb-1">Catatan Kondisi / Pertanyaan</label>
                 <input
                   type="text"
-                  placeholder="Contoh: Sudah disimpan 4 hari di kulkas, apakah bintik ini jamur?"
+                  placeholder={
+                    isPlant
+                      ? "Contoh: Disiram tiap hari, di dalam ruangan, daun bawah mulai kuning sejak seminggu lalu"
+                      : "Contoh: Sudah disimpan 4 hari di kulkas, apakah bintik ini jamur?"
+                  }
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   className="w-full px-3 py-2 rounded-xl bg-white border border-emerald-500/20 text-emerald-950 placeholder:text-emerald-900/40 focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
@@ -465,7 +548,7 @@ export function Scanner() {
               ) : (
                 <>
                   <Sparkles className="w-5 h-5" />
-                  <span>Analisis Kondisi Bahan dengan AI</span>
+                  <span>{isPlant ? "Analisis Kesehatan Tanaman dengan AI" : "Analisis Kondisi Bahan dengan AI"}</span>
                 </>
               )}
             </button>

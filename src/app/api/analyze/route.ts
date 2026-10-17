@@ -1,7 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 import { AnalyzeRequestSchema } from "@/lib/analysis-schema";
-import { analyzeProduceImage, getVisionModel } from "@/lib/groq";
-import type { FreshnessAnalysisResult, AnalyzeApiResponse } from "@/types/analysis";
+import { analyzePlantImage, analyzeProduceImage, getVisionModel } from "@/lib/groq";
+import type { FreshnessAnalysisResult, AnalyzeApiResponse, FreshnessStatus, RecommendedAction } from "@/types/analysis";
+
+// Plant health enums are mapped onto the shared status/action fields so history & dashboard keep working
+const PLANT_STATUS_MAP: Record<string, FreshnessStatus> = {
+  healthy: "fresh",
+  stressed: "moderate",
+  critical: "poor",
+  uncertain: "uncertain",
+};
+
+const PLANT_ACTION_MAP: Record<string, RecommendedAction> = {
+  maintain_care: "recommended",
+  treat_soon: "inspect_closely",
+  urgent_rescue: "avoid_using",
+};
 
 // Simple in-memory sliding window rate limiting (per IP)
 const RATE_LIMIT_WINDOW_MS = 60 * 1000; // 1 minute
@@ -72,7 +86,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { image, category_hint, item_name_hint, notes } = parsed.data;
+    const { image, scan_mode, category_hint, item_name_hint, notes } = parsed.data;
 
     // 4. Validate image type and size (limit to ~10MB)
     let base64Data = image;
@@ -130,33 +144,61 @@ export async function POST(req: NextRequest) {
       : `data:${mimeType};base64,${base64Data}`;
 
     // 5. Send to Groq Vision API
-    const analysisOutput = await analyzeProduceImage(fullDataUrl, {
-      category_hint,
-      item_name_hint,
-      notes,
-    });
+    const scanId = "scan_" + Date.now() + "_" + Math.random().toString(36).substring(2, 8);
+    let finalResult: FreshnessAnalysisResult;
 
-    const processingTime = Date.now() - startTime;
-    const modelUsed = getVisionModel();
+    if (scan_mode === "plant") {
+      const plantOutput = await analyzePlantImage(fullDataUrl, { item_name_hint, notes });
 
-    // 6. Build structured response
-    const finalResult: FreshnessAnalysisResult = {
-      id: "scan_" + Date.now() + "_" + Math.random().toString(36).substring(2, 8),
-      timestamp: new Date().toISOString(),
-      item_name: analysisOutput.item_name,
-      category: analysisOutput.category,
-      identification_confidence: Math.round(analysisOutput.identification_confidence),
-      freshness_score: Math.round(analysisOutput.freshness_score),
-      freshness_status: analysisOutput.freshness_status,
-      visual_observations: analysisOutput.visual_observations,
-      possible_issues: analysisOutput.possible_issues,
-      recommended_action: analysisOutput.recommended_action,
-      storage_tips: analysisOutput.storage_tips,
-      limitations: analysisOutput.limitations,
-      summary: analysisOutput.summary,
-      processing_time_ms: processingTime,
-      model_used: modelUsed,
-    };
+      // 6. Build structured response
+      finalResult = {
+        id: scanId,
+        timestamp: new Date().toISOString(),
+        scan_mode: "plant",
+        item_name: plantOutput.plant_name,
+        category: "plant",
+        identification_confidence: Math.round(plantOutput.identification_confidence),
+        freshness_score: Math.round(plantOutput.health_score),
+        freshness_status: PLANT_STATUS_MAP[plantOutput.health_status],
+        visual_observations: plantOutput.visual_observations,
+        possible_issues: plantOutput.possible_issues,
+        recommended_action: PLANT_ACTION_MAP[plantOutput.recommended_action],
+        storage_tips: plantOutput.care_tips,
+        limitations: plantOutput.limitations,
+        summary: plantOutput.summary,
+        survival_outlook: plantOutput.survival_outlook,
+        survival_explanation: plantOutput.survival_explanation,
+        urgent_actions: plantOutput.urgent_actions,
+        processing_time_ms: Date.now() - startTime,
+        model_used: getVisionModel(),
+      };
+    } else {
+      const analysisOutput = await analyzeProduceImage(fullDataUrl, {
+        category_hint,
+        item_name_hint,
+        notes,
+      });
+
+      // 6. Build structured response
+      finalResult = {
+        id: scanId,
+        timestamp: new Date().toISOString(),
+        scan_mode: "produce",
+        item_name: analysisOutput.item_name,
+        category: analysisOutput.category,
+        identification_confidence: Math.round(analysisOutput.identification_confidence),
+        freshness_score: Math.round(analysisOutput.freshness_score),
+        freshness_status: analysisOutput.freshness_status,
+        visual_observations: analysisOutput.visual_observations,
+        possible_issues: analysisOutput.possible_issues,
+        recommended_action: analysisOutput.recommended_action,
+        storage_tips: analysisOutput.storage_tips,
+        limitations: analysisOutput.limitations,
+        summary: analysisOutput.summary,
+        processing_time_ms: Date.now() - startTime,
+        model_used: getVisionModel(),
+      };
+    }
 
     return NextResponse.json<AnalyzeApiResponse>(
       {

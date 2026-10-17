@@ -29,6 +29,25 @@ export const GroqAnalysisOutputSchema = z.object({
 
 export type GroqAnalysisOutput = z.infer<typeof GroqAnalysisOutputSchema>;
 
+export const PlantAnalysisOutputSchema = z.object({
+  success: z.boolean().default(true),
+  plant_name: z.string().min(1).max(200).default("Tanaman Tidak Dikenal"),
+  identification_confidence: z.coerce.number().min(0).max(100).default(70),
+  health_score: z.coerce.number().min(0).max(100).default(50),
+  health_status: z.enum(["healthy", "stressed", "critical", "uncertain"]).default("uncertain"),
+  survival_outlook: z.enum(["likely_survive", "at_risk", "likely_die", "uncertain"]).default("uncertain"),
+  survival_explanation: z.string().min(1).max(1500).default("Prognosis belum dapat dipastikan dari gambar ini."),
+  visual_observations: z.array(VisualObservationSchema).min(1, "Minimal sertakan 1 observasi visual"),
+  possible_issues: z.array(PossibleIssueSchema).default([]),
+  recommended_action: z.enum(["maintain_care", "treat_soon", "urgent_rescue"]).default("treat_soon"),
+  urgent_actions: z.array(z.string().min(1).max(500)).default([]),
+  care_tips: z.array(z.string().min(1).max(500)).min(1, "Minimal sertakan 1 tips perawatan"),
+  limitations: z.array(z.string().min(1).max(500)).min(1, "Minimal sertakan 1 catatan batasan"),
+  summary: z.string().min(1).max(1500).default("Analisis visual tanaman selesai dilakukan."),
+});
+
+export type PlantAnalysisOutput = z.infer<typeof PlantAnalysisOutputSchema>;
+
 export const AnalyzeRequestSchema = z.object({
   image: z
     .string()
@@ -40,6 +59,7 @@ export const AnalyzeRequestSchema = z.object({
         /^[A-Za-z0-9+/=]+$/.test(val.slice(0, 100))
       );
     }, "Format gambar harus berupa data URL atau base64 yang valid"),
+  scan_mode: z.enum(["produce", "plant"]).default("produce"),
   category_hint: z.string().max(100).optional(),
   item_name_hint: z.string().max(100).optional(),
   notes: z.string().max(500).optional(),

@@ -1,5 +1,6 @@
+import Image from "next/image";
 import Link from "next/link";
-import { Leaf, ShieldAlert, Heart, GitBranch } from "lucide-react";
+import { ShieldAlert, Heart, GitBranch } from "lucide-react";
 
 export function Footer() {
   return (
@@ -9,13 +10,11 @@ export function Footer() {
           {/* Brand */}
           <div className="md:col-span-2 space-y-3">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-emerald-600 flex items-center justify-center text-white">
-                <Leaf className="w-4 h-4" />
-              </div>
+              <Image src="/images/logo-mark.png" alt="Logo QFscan" width={32} height={32} className="w-8 h-8" />
               <span className="font-extrabold text-lg text-emerald-950">QFscan</span>
             </div>
             <p className="text-sm text-emerald-900/70 max-w-md leading-relaxed">
-              Platform modern berbasis kecerdasan buatan untuk mengamati tingkat kesegaran, deteksi cacat visual, dan rekomendasi penanganan bahan pangan segar dari visual foto.
+              Platform modern berbasis kecerdasan buatan untuk mengamati tingkat kesegaran, deteksi cacat visual, dan rekomendasi penanganan bahan pangan segar serta pemeriksaan kesehatan tanaman dari visual foto.
             </p>
             <div className="flex items-center gap-2 text-xs text-emerald-800/80 pt-2">
               <ShieldAlert className="w-4 h-4 text-amber-600 shrink-0" />
@@ -41,7 +40,7 @@ export function Footer() {
               </li>
               <li>
                 <Link href="/scanner" className="hover:text-emerald-700 transition-colors">
-                  Scan Pangan
+                  Scan Pangan & Tanaman
                 </Link>
               </li>
               <li>
@@ -59,9 +58,9 @@ export function Footer() {
 
           {/* Supported Items */}
           <div>
-            <h4 className="font-bold text-sm text-emerald-950 mb-3 uppercase tracking-wider">Bahan Pangan</h4>
+            <h4 className="font-bold text-sm text-emerald-950 mb-3 uppercase tracking-wider">Cakupan Scan</h4>
             <p className="text-xs text-emerald-900/70 leading-relaxed mb-4">
-              Mendukung berbagai macam buah-buahan (apel, pisang, jeruk, mangga), sayuran hijau, cabai, tomat, umbi-umbian, dan produk segar lainnya.
+              Mendukung berbagai macam buah-buahan (apel, pisang, jeruk, mangga), sayuran hijau, cabai, tomat, umbi-umbian, dan produk segar lainnya, serta tanaman hias, tanaman kebun, dan bibit.
             </p>
             <div className="pt-2">
               <a

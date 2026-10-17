@@ -18,7 +18,22 @@ export function formatDateTime(isoString: string): string {
   }
 }
 
-export function getFreshnessBadge(status: string) {
+const PLANT_STATUS_LABELS: Record<string, string> = {
+  fresh: "Tanaman Sehat",
+  moderate: "Tanaman Stres",
+  poor: "Kondisi Kritis",
+  uncertain: "Tidak Meyakinkan",
+};
+
+export function getFreshnessBadge(status: string, category?: string) {
+  const badge = getProduceFreshnessBadge(status);
+  if (category === "plant") {
+    return { ...badge, label: PLANT_STATUS_LABELS[status] ?? badge.label };
+  }
+  return badge;
+}
+
+function getProduceFreshnessBadge(status: string) {
   switch (status) {
     case "fresh":
       return {
@@ -52,7 +67,30 @@ export function getFreshnessBadge(status: string) {
   }
 }
 
-export function getRecommendedActionBadge(action: string) {
+const PLANT_ACTION_LABELS: Record<string, { label: string; desc: string }> = {
+  recommended: {
+    label: "Lanjutkan Perawatan Rutin",
+    desc: "Tanaman tampak sehat. Pertahankan pola penyiraman, cahaya, dan pemupukan saat ini.",
+  },
+  inspect_closely: {
+    label: "Perlu Penanganan Segera",
+    desc: "Terlihat tanda stres atau gangguan. Lakukan langkah penanganan dalam beberapa hari ke depan.",
+  },
+  avoid_using: {
+    label: "Penyelamatan Darurat",
+    desc: "Tanaman dalam kondisi kritis. Segera lakukan tindakan penyelamatan dan pisahkan dari tanaman lain bila ada tanda hama/penyakit.",
+  },
+};
+
+export function getRecommendedActionBadge(action: string, category?: string) {
+  const badge = getProduceActionBadge(action);
+  if (category === "plant" && PLANT_ACTION_LABELS[action]) {
+    return { ...badge, ...PLANT_ACTION_LABELS[action] };
+  }
+  return badge;
+}
+
+function getProduceActionBadge(action: string) {
   switch (action) {
     case "recommended":
       return {
@@ -87,10 +125,38 @@ export function getCategoryLabel(category: string): string {
       return "Buah-buahan";
     case "vegetable":
       return "Sayuran";
+    case "plant":
+      return "Tanaman";
     case "other":
       return "Bahan Pangan Lain";
     case "unknown":
     default:
       return "Belum Dikenali";
+  }
+}
+
+export function getSurvivalBadge(outlook: string) {
+  switch (outlook) {
+    case "likely_survive":
+      return {
+        label: "Kemungkinan Besar Bertahan",
+        color: "bg-emerald-500/10 text-emerald-800 border-emerald-500/25",
+      };
+    case "at_risk":
+      return {
+        label: "Berisiko — Masih Bisa Diselamatkan",
+        color: "bg-amber-500/10 text-amber-800 border-amber-500/25",
+      };
+    case "likely_die":
+      return {
+        label: "Peluang Hidup Rendah",
+        color: "bg-rose-500/10 text-rose-800 border-rose-500/25",
+      };
+    case "uncertain":
+    default:
+      return {
+        label: "Prognosis Belum Pasti",
+        color: "bg-slate-500/10 text-slate-700 border-slate-500/25",
+      };
   }
 }

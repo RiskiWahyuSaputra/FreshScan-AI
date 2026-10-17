@@ -1,5 +1,10 @@
 import Groq from "groq-sdk";
-import { GroqAnalysisOutputSchema, type GroqAnalysisOutput } from "./analysis-schema";
+import {
+  GroqAnalysisOutputSchema,
+  PlantAnalysisOutputSchema,
+  type GroqAnalysisOutput,
+  type PlantAnalysisOutput,
+} from "./analysis-schema";
 
 // Default vision model on Groq
 // qwen/qwen3.8-27b is the currently supported 27B vision model with image analysis & json mode
@@ -77,6 +82,65 @@ Important limitations:
   "summary": "Ringkasan kesimpulan visual dalam bahasa Indonesia"
 }`;
 
+export const PLANT_SYSTEM_PROMPT = `You are QFscan Plant, an assistant specialized in visual health inspection of living plants (houseplants, garden plants, crops, seedlings, trees).
+
+Analyze only the visual evidence present in the provided image.
+
+Your tasks:
+1. Identify the plant if possible (provide Indonesian common name in plant_name, e.g. "Monstera", "Cabai Rawit", "Lidah Mertua", "Mawar", "Padi"). Add the Latin name in parentheses when reasonably confident.
+2. Assess visible health indicators: leaf color, turgor (wilting vs firm), leaf edges and tips, spots or lesions, stem condition, new growth, visible roots or soil surface, and visible pests.
+3. Identify visible problems such as yellowing (chlorosis), browning or crispy tips, wilting, drooping, leaf spots, powdery or fuzzy growth, stem rot or mushy base, holes from pests, webbing, sticky residue, or visible insects.
+4. Suggest possible causes cautiously (overwatering, underwatering, root rot, too much or too little light, sunburn, nutrient deficiency, fungal or bacterial infection, pests, transplant shock, cold damage). Do not make a definitive diagnosis from an image alone.
+5. Estimate a health score from 0 to 100 (an approximate visual estimate, not a laboratory measurement).
+6. Give a survival outlook: will the plant likely survive with proper care, is it at risk, or does it look likely to die? Explain in survival_explanation which visible evidence supports this (e.g. green healthy tissue or new growth remaining = recoverable; entire stem black and mushy = poor outlook). If green tissue remains, mention that recovery is often still possible.
+7. List concrete urgent_actions the user should do in the next 1-3 days (empty array if the plant looks healthy).
+8. Provide practical ongoing care tips in Indonesian (watering, light, soil, drainage, fertilizer, pest control).
+
+Important limitations:
+- Roots, soil moisture, and internal stem condition are usually not visible; state this when relevant.
+- Do not classify every brown leaf as disease; old lower leaves naturally yellow and drop.
+- Do not declare a plant dead unless the visual evidence is overwhelming; prefer "at_risk" when unsure.
+- If the image is blurry, poorly lit, shows only a small part of the plant, or is not a plant, state the limitation and use "uncertain".
+- Do not recommend dangerous chemicals or dosages; suggest safe, common treatments and advise checking product labels.
+- Clearly distinguish observations from hypotheses.
+- Respond with clear, natural Indonesian language for all descriptions, findings, tips, limitations, and summary.
+- Return valid JSON matching the exact schema below:
+
+{
+  "success": true,
+  "plant_name": "Nama tanaman (Bahasa Indonesia)",
+  "identification_confidence": 85,
+  "health_score": 62,
+  "health_status": "healthy | stressed | critical | uncertain",
+  "survival_outlook": "likely_survive | at_risk | likely_die | uncertain",
+  "survival_explanation": "Penjelasan peluang tanaman bertahan hidup berdasarkan bukti visual",
+  "visual_observations": [
+    {
+      "finding": "Deskripsi temuan visual",
+      "severity": "low | medium | high",
+      "confidence": 80
+    }
+  ],
+  "possible_issues": [
+    {
+      "name": "Dugaan masalah atau penyakit",
+      "explanation": "Penjelasan gejala visual dan kemungkinan penyebab",
+      "confidence": 70
+    }
+  ],
+  "recommended_action": "maintain_care | treat_soon | urgent_rescue",
+  "urgent_actions": [
+    "Langkah penanganan segera dalam bahasa Indonesia"
+  ],
+  "care_tips": [
+    "Tips perawatan rutin dalam bahasa Indonesia"
+  ],
+  "limitations": [
+    "Catatan keterbatasan analisis visual ini"
+  ],
+  "summary": "Ringkasan kondisi tanaman dalam bahasa Indonesia"
+}`;
+
 /**
  * Clean and parse JSON from LLM response (stripping markdown fences if present)
  */
@@ -95,32 +159,25 @@ export function extractCleanJson(rawText: string): unknown {
   return JSON.parse(cleaned);
 }
 
+type ScanHints = { category_hint?: string; item_name_hint?: string; notes?: string };
+
 /**
- * Execute Groq Vision analysis on base64 image data URL
+ * Send an image + prompt to the Groq vision model and return the parsed JSON body
  */
-export async function analyzeProduceImage(
-  imageDataUrl: string,
-  hints?: { category_hint?: string; item_name_hint?: string; notes?: string }
-): Promise<GroqAnalysisOutput> {
+async function runVisionJson(
+  systemPrompt: string,
+  userPrompt: string,
+  imageDataUrl: string
+): Promise<unknown> {
   const groq = getGroqClient();
   const model = getVisionModel();
-
-  let userPrompt = "Tolong periksa dan analisis kondisi bahan pangan pada gambar ini secara teliti.";
-  if (hints?.category_hint || hints?.item_name_hint || hints?.notes) {
-    const contextParts: string[] = [];
-    if (hints.item_name_hint) contextParts.push(`Dugaan nama bahan: ${hints.item_name_hint}`);
-    if (hints.category_hint) contextParts.push(`Kategori bahan: ${hints.category_hint}`);
-    if (hints.notes) contextParts.push(`Catatan tambahan pengguna: ${hints.notes}`);
-    userPrompt += `\nInformasi konteks dari pengguna: ${contextParts.join(", ")}.`;
-  }
-  userPrompt += "\nKembalikan analisis dalam format JSON murni sesuai skema yang telah ditentukan.";
 
   const completion = await groq.chat.completions.create({
     model,
     messages: [
       {
         role: "system",
-        content: FRESHSCAN_SYSTEM_PROMPT,
+        content: systemPrompt,
       },
       {
         role: "user",
@@ -148,8 +205,47 @@ export async function analyzeProduceImage(
     throw new Error("Model Groq tidak mengembalikan teks hasil analisis.");
   }
 
-  const rawJson = extractCleanJson(responseContent);
-  const validated = GroqAnalysisOutputSchema.parse(rawJson);
+  return extractCleanJson(responseContent);
+}
 
-  return validated;
+/**
+ * Execute Groq Vision analysis on base64 image data URL
+ */
+export async function analyzeProduceImage(
+  imageDataUrl: string,
+  hints?: ScanHints
+): Promise<GroqAnalysisOutput> {
+  let userPrompt = "Tolong periksa dan analisis kondisi bahan pangan pada gambar ini secara teliti.";
+  if (hints?.category_hint || hints?.item_name_hint || hints?.notes) {
+    const contextParts: string[] = [];
+    if (hints.item_name_hint) contextParts.push(`Dugaan nama bahan: ${hints.item_name_hint}`);
+    if (hints.category_hint) contextParts.push(`Kategori bahan: ${hints.category_hint}`);
+    if (hints.notes) contextParts.push(`Catatan tambahan pengguna: ${hints.notes}`);
+    userPrompt += `\nInformasi konteks dari pengguna: ${contextParts.join(", ")}.`;
+  }
+  userPrompt += "\nKembalikan analisis dalam format JSON murni sesuai skema yang telah ditentukan.";
+
+  const rawJson = await runVisionJson(FRESHSCAN_SYSTEM_PROMPT, userPrompt, imageDataUrl);
+  return GroqAnalysisOutputSchema.parse(rawJson);
+}
+
+/**
+ * Execute Groq Vision plant health analysis on base64 image data URL
+ */
+export async function analyzePlantImage(
+  imageDataUrl: string,
+  hints?: ScanHints
+): Promise<PlantAnalysisOutput> {
+  let userPrompt =
+    "Tolong periksa kesehatan tanaman pada gambar ini secara teliti dan perkirakan apakah tanaman ini dapat bertahan hidup.";
+  if (hints?.item_name_hint || hints?.notes) {
+    const contextParts: string[] = [];
+    if (hints.item_name_hint) contextParts.push(`Dugaan nama tanaman: ${hints.item_name_hint}`);
+    if (hints.notes) contextParts.push(`Catatan perawatan dari pengguna: ${hints.notes}`);
+    userPrompt += `\nInformasi konteks dari pengguna: ${contextParts.join(", ")}.`;
+  }
+  userPrompt += "\nKembalikan analisis dalam format JSON murni sesuai skema yang telah ditentukan.";
+
+  const rawJson = await runVisionJson(PLANT_SYSTEM_PROMPT, userPrompt, imageDataUrl);
+  return PlantAnalysisOutputSchema.parse(rawJson);
 }

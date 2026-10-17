@@ -10,7 +10,11 @@ export interface PossibleIssue {
   confidence: number; // 0 - 100
 }
 
-export type ProduceCategory = "fruit" | "vegetable" | "other" | "unknown";
+export type ProduceCategory = "fruit" | "vegetable" | "plant" | "other" | "unknown";
+
+export type ScanMode = "produce" | "plant";
+
+export type SurvivalOutlook = "likely_survive" | "at_risk" | "likely_die" | "uncertain";
 
 export type FreshnessStatus = "fresh" | "moderate" | "poor" | "uncertain";
 
@@ -30,6 +34,10 @@ export interface FreshnessAnalysisResult {
   storage_tips: string[];
   limitations: string[];
   summary: string;
+  scan_mode?: ScanMode; // undefined on older records = "produce"
+  survival_outlook?: SurvivalOutlook; // plant mode only
+  survival_explanation?: string; // plant mode only
+  urgent_actions?: string[]; // plant mode only
   image_data?: string; // Base64 data URL for display & IndexedDB storage
   image_hash?: string;
   processing_time_ms?: number;
@@ -38,6 +46,7 @@ export interface FreshnessAnalysisResult {
 
 export interface AnalyzeApiPayload {
   image: string; // base64 or data URL
+  scan_mode?: ScanMode;
   category_hint?: string;
   item_name_hint?: string;
   notes?: string;
