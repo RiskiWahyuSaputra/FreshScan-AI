@@ -1,7 +1,7 @@
 import { Scanner } from "@/components/scanner/Scanner";
 
 export const metadata = {
-  title: "Pindai Bahan Pangan — FreshScan AI",
+  title: "Pindai Bahan Pangan — QFscan",
   description: "Ambil foto atau upload gambar buah, sayuran, dan hasil tani untuk analisis kesegaran instan.",
 };
 

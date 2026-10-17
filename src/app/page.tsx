@@ -68,7 +68,7 @@ export default function HomePage() {
           </h1>
 
           <p className="text-base sm:text-lg text-emerald-900/80 leading-relaxed max-w-2xl">
-            Pindai buah, sayuran, dan hasil tani Anda menggunakan kamera. FreshScan AI mengevaluasi bukti visual
+            Pindai buah, sayuran, dan hasil tani Anda menggunakan kamera. QFscan mengevaluasi bukti visual
             seperti memar, diskolorasi, jamur permukaan, dan memberikan tips penyimpanan praktis agar bahan pangan
             tidak terbuang sia-sia.
           </p>
@@ -231,7 +231,7 @@ export default function HomePage() {
           <h2 className="text-xs font-bold text-emerald-600 tracking-widest uppercase">Cakupan Deteksi</h2>
           <p className="text-3xl font-extrabold text-emerald-950">Bahan Pangan yang Didukung</p>
           <p className="text-sm text-emerald-900/70">
-            FreshScan AI dilatih menganalisis berbagai varietas pangan segar secara visual.
+            QFscan dilatih menganalisis berbagai varietas pangan segar secara visual.
           </p>
         </div>
 
@@ -262,10 +262,10 @@ export default function HomePage() {
       <section className="rounded-3xl p-6 sm:p-8 bg-amber-500/10 border border-amber-500/20 space-y-4">
         <div className="flex items-center gap-2.5 text-amber-900 font-bold text-base sm:text-lg">
           <ShieldCheck className="w-5 h-5 text-amber-600 shrink-0" />
-          <span>Batasan Penting Analisis Visual FreshScan AI</span>
+          <span>Batasan Penting Analisis Visual QFscan</span>
         </div>
         <p className="text-xs sm:text-sm text-amber-950/80 leading-relaxed">
-          Analisis FreshScan AI didasarkan murni pada <strong>bukti visual eksternal</strong> yang tertangkap oleh kamera.
+          Analisis QFscan didasarkan murni pada <strong>bukti visual eksternal</strong> yang tertangkap oleh kamera.
           Aplikasi ini tidak dapat mendeteksi keberadaan bakteri mikroba (mis. Salmonella, E. Coli), residu bahan kimia/pestisida,
           racun pangan, ataupun kebusukan bagian dalam yang tertutup kulit tebal. Skor tinggi adalah estimasi visual dan bukan
           jaminan keamanan konsumsi mutlak. Selalu gunakan akal sehat, periksa aroma, dan cuci bahan pangan secara bersih.

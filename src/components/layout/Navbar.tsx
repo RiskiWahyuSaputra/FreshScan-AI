@@ -26,10 +26,7 @@ export function Navbar() {
           </div>
           <div>
             <div className="flex items-center gap-1.5">
-              <span className="font-extrabold text-lg text-emerald-950 tracking-tight">FreshScan</span>
-              <span className="text-xs font-semibold px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700 border border-emerald-300">
-                AI
-              </span>
+              <span className="font-extrabold text-lg text-emerald-950 tracking-tight">QFscan</span>
             </div>
             <p className="text-[10px] text-emerald-800/70 font-medium hidden sm:block">
               Inspeksi Mutu & Kesegaran Visual

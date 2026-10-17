@@ -1,7 +1,7 @@
 import { HistoryList } from "@/components/history/HistoryList";
 
 export const metadata = {
-  title: "Riwayat Pemindaian Pangan — FreshScan AI",
+  title: "Riwayat Pemindaian Pangan — QFscan",
   description: "Kelola, cari, dan telusuri riwayat hasil analisis kesegaran buah dan sayuran yang tersimpan.",
 };
 

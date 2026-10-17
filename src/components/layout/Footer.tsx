@@ -12,7 +12,7 @@ export function Footer() {
               <div className="w-8 h-8 rounded-lg bg-emerald-600 flex items-center justify-center text-white">
                 <Leaf className="w-4 h-4" />
               </div>
-              <span className="font-extrabold text-lg text-emerald-950">FreshScan AI</span>
+              <span className="font-extrabold text-lg text-emerald-950">QFscan</span>
             </div>
             <p className="text-sm text-emerald-900/70 max-w-md leading-relaxed">
               Platform modern berbasis kecerdasan buatan untuk mengamati tingkat kesegaran, deteksi cacat visual, dan rekomendasi penanganan bahan pangan segar dari visual foto.
@@ -78,7 +78,7 @@ export function Footer() {
         </div>
 
         <div className="mt-8 pt-6 border-t border-emerald-950/10 flex flex-col sm:flex-row items-center justify-between text-xs text-emerald-900/60 gap-3">
-          <p>© 2026 FreshScan AI. Nature Glass Design Architecture.</p>
+          <p>© 2026 QFscan. Nature Glass Design Architecture.</p>
           <p className="flex items-center gap-1">
             Dibuat dengan <Heart className="w-3 h-3 text-rose-500 fill-rose-500" /> untuk ketahanan & keamanan pangan Indonesia
           </p>

@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 
 export const metadata = {
-  title: "Panduan & Edukasi Pangan — FreshScan AI",
+  title: "Panduan & Edukasi Pangan — QFscan",
   description: "Pelajari teknik penyimpanan buah sayuran, identifikasi tanda awal pembusukan, dan pembedaan cacat visual.",
 };
 
@@ -170,7 +170,7 @@ export default function EducationPage() {
           className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md shadow-emerald-700/20 transition-all"
         >
           <Scan className="w-4 h-4" />
-          <span>Buka Scanner FreshScan</span>
+          <span>Buka Scanner QFscan</span>
         </Link>
       </div>
     </div>

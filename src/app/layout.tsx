@@ -4,10 +4,10 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 
 export const metadata: Metadata = {
-  title: "FreshScan AI — Kenali Kesegaran Pangan dalam Sekejap",
+  title: "QFscan — Kenali Kesegaran Pangan dalam Sekejap",
   description:
     "Aplikasi visual inspection cerdas berbasis AI untuk menganalisis mutu, kesegaran buah, sayuran, dan bahan pangan segar serta rekomendasi penyimpanan terbaik.",
-  keywords: ["FreshScan AI", "AI Buah Sayur", "Inspeksi Kesegaran", "Food Freshness AI", "Groq Vision"],
+  keywords: ["QFscan", "AI Buah Sayur", "Inspeksi Kesegaran", "Food Freshness AI", "Groq Vision"],
 };
 
 export default function RootLayout({

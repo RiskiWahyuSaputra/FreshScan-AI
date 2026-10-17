@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { ScanResultContent } from "@/components/results/ScanResultContent";
 
 export const metadata = {
-  title: "Hasil Analisis Kesegaran — FreshScan AI",
+  title: "Hasil Analisis Kesegaran — QFscan",
   description: "Laporan visual lengkap tingkat kesegaran, temuan cacat, dan rekomendasi penyimpanan.",
 };
 
